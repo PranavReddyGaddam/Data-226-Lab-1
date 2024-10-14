@@ -8,29 +8,17 @@ import pandas as pd
 import numpy as np
 
 
-"""Remove the Hardcoding today"""
-
 # Snowflake Connection
 def return_snowflake_conn():
-    user_id = "PranavReddy02"
-    password = "Pranav@2801"
-    account = "PIB54957"
-
-    conn = snowflake.connector.connect(
-        user=user_id,
-        password=password,
-        account=account,
-        warehouse= "stock_warehouse",
-        database = "stock_db",
-        schema = "raw_data"
-    )
+    hook = SnowflakeHook(conn_id='snowflake_conn')
+    conn = hook.get_conn()
     return conn.cursor()
-
+    
 """Extraction of Stock Data from Alpha Vantage API."""
 
 @task
 def extract_stock_data(stock_symbol):
-    API_KEY = "5OWND3O3VRJLNDZM"
+    API_KEY = Variable.get('VANTAGE_API_KEY')
     
     url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={stock_symbol}&apikey={API_KEY}"
     response = requests.get(url)
@@ -150,6 +138,20 @@ def load_forecast_to_snowflake(forecast_df):
 
 """Next 7 Days prediction"""
 
+def getNext7WorkingDays(today):
+    next_7_days = []
+
+    day_count = 0
+    for _ in range(7):
+        while True:
+            next_day = today + timedelta(days=day_count)
+            day_count += 1
+            if next_day.weekday() < 5: 
+                next_7_days.append(next_day.strftime('%Y-%m-%d'))
+                break  
+
+    return next_7_days
+
 @task
 def predict_next_7_days(df):
     df['date'] = pd.to_datetime(df['date'])
@@ -188,7 +190,7 @@ def predict_next_7_days(df):
     forecast_volume = model_fit_volume.forecast(steps=7)
 
     last_date = df['date'].max()
-    future_dates = [last_date + timedelta(days=i) for i in range(1, 8)]
+    future_dates = getNext7WorkingDays(last_date)
 
     forecast_df = pd.DataFrame({
         'date': future_dates,
