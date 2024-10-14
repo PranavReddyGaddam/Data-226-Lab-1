@@ -1,5 +1,7 @@
 from airflow import DAG
 from airflow.decorators import task
+from airflow.models import Variable
+from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
 from statsmodels.tsa.arima.model import ARIMA
 from datetime import timedelta, datetime
 import snowflake.connector
@@ -7,8 +9,7 @@ import requests
 import pandas as pd
 import numpy as np
 
-
-# Snowflake Connection
+"""Snowflake Connection"""
 def return_snowflake_conn():
     hook = SnowflakeHook(conn_id='snowflake_conn')
     conn = hook.get_conn()
@@ -77,7 +78,7 @@ def load_forecast_to_snowflake(forecast_df):
             check_query = f"""
             SELECT COUNT(1)
             FROM raw_data.stock_forecasts
-            WHERE date = '{row['date'].strftime('%Y-%m-%d')}'
+            WHERE date = '{row['date']}'
               AND symbol = '{row['symbol']}'
             """
             cur.execute(check_query)
@@ -86,7 +87,7 @@ def load_forecast_to_snowflake(forecast_df):
             if exists == 0:
                 insert_query = f"""
                 INSERT INTO raw_data.stock_forecasts (date, open, high, low, close, volume, symbol)
-                VALUES ('{row['date'].strftime('%Y-%m-%d')}', {row['open']}, {row['high']}, {row['low']}, {row['close']}, {row['volume']}, '{row['symbol']}')
+                VALUES ('{row['date']}', {row['open']}, {row['high']}, {row['low']}, {row['close']}, {row['volume']}, '{row['symbol']}')
                 """
                 cur.execute(insert_query)
 
