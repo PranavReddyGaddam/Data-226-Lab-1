@@ -35,44 +35,6 @@ def extract_stock_data(stock_symbol):
     
     return df
 
-"""Creation of Tables"""
-
-@task
-def create_90_days_stock_table():
-    cur = return_snowflake_conn()
-
-    create_table_query = """
-    CREATE OR REPLACE TABLE raw_data.stock_prices (
-        date DATE,
-        open FLOAT,
-        high FLOAT,
-        low FLOAT,
-        close FLOAT,
-        volume FLOAT,
-        symbol STRING
-    );
-    """
-    cur.execute(create_table_query)
-    cur.close()
-
-@task
-def create_forecast_table():
-    cur = return_snowflake_conn()
-
-    create_table_query = """
-    CREATE OR REPLACE TABLE raw_data.stock_forecasts (
-        date DATE,
-        open FLOAT,
-        high FLOAT,
-        low FLOAT,
-        close FLOAT,
-        volume FLOAT,
-        symbol STRING
-    );
-    """
-    cur.execute(create_table_query)
-    cur.close()
-
 """Loading Data into the tables"""
 
 @task
