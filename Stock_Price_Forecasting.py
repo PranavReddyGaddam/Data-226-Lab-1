@@ -152,7 +152,8 @@ def predict_next_7_days(df):
     forecast_volume = model_fit_volume.forecast(steps=7)
 
     last_date = df['date'].max()
-    future_dates = getNext7WorkingDays(last_date)
+    today = datetime.today()
+    future_dates = getNext7WorkingDays(today)
 
     forecast_df = pd.DataFrame({
         'date': future_dates,
