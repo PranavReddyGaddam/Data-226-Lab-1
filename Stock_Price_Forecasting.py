@@ -104,7 +104,7 @@ def load_forecast_to_snowflake(forecast_df):
 def getNext7WorkingDays(today):
     next_7_days = []
 
-    day_count = 0
+    day_count = 1
     for _ in range(7):
         while True:
             next_day = today + timedelta(days=day_count)
